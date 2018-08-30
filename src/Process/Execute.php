@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Process;
@@ -19,9 +19,6 @@ use Symfony\Component\Process\Process;
 
 /**
  * Runs a process and generates output if necessary.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class Execute
 {
@@ -77,7 +74,7 @@ class Execute
      */
     public function runAll($processes)
     {
-        if (OutputInterface::VERBOSITY_VERY_VERBOSE <= $this->output->getVerbosity()) {
+        if ($this->output->isVeryVerbose()) {
             // If verbose, then do not run in parallel so we get sane debug output.
             array_map([$this, 'run'], $processes);
 
@@ -132,7 +129,7 @@ class Execute
      */
     public function passThroughProcess(Process $process)
     {
-        if (OutputInterface::VERBOSITY_VERY_VERBOSE <= $this->output->getVerbosity()) {
+        if ($this->output->isVeryVerbose()) {
             $this->output->writeln(sprintf('<bg=blue;fg=white;> RUN </> <fg=blue>%s</>', $process->getCommandLine()));
         }
         $process->run(function ($type, $buffer) {

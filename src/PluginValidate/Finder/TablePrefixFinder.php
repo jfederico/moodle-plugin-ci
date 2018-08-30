@@ -6,17 +6,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\PluginValidate\Finder;
 
 /**
  * Finds table prefixes in the db/install.xml.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class TablePrefixFinder extends TableFinder
 {
@@ -27,8 +24,19 @@ class TablePrefixFinder extends TableFinder
 
     public function findTokens($file, FileTokens $fileTokens)
     {
-        foreach ($this->findTables($file) as $table) {
-            $fileTokens->compareStart($table);
+        $tables = $this->findTables($file);
+        $total  = count($tables);
+        for ($i = 0; $i < $total; ++$i) {
+            $fileTokens->compareStart($tables[$i]);
+
+            // This runs after every table except for the last one.
+            if ($i !== $total - 1) {
+                if (!$fileTokens->hasFoundAllTokens()) {
+                    break; // Found an invalid table name, can stop.
+                }
+                // Current table name valid, reset tokens so we can see if the next table is valid or not.
+                $fileTokens->resetTokens();
+            }
         }
     }
 }

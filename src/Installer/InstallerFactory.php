@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Installer;
@@ -20,9 +20,6 @@ use Moodlerooms\MoodlePluginCI\Process\Execute;
 
 /**
  * Installer Factory.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class InstallerFactory
 {
@@ -72,6 +69,11 @@ class InstallerFactory
     public $pluginsDir;
 
     /**
+     * @var bool
+     */
+    public $noInit;
+
+    /**
      * Given a big bag of install options, add installers to the collection.
      *
      * @param InstallerCollection $installers Installers will be added to this
@@ -82,6 +84,9 @@ class InstallerFactory
         $installers->add(new PluginInstaller($this->moodle, $this->plugin, $this->pluginsDir, $this->dumper));
         $installers->add(new VendorInstaller($this->moodle, $this->plugin, $this->execute));
 
+        if ($this->noInit) {
+            return;
+        }
         if ($this->plugin->hasBehatFeatures() || $this->plugin->hasUnitTests()) {
             $installers->add(new TestSuiteInstaller($this->moodle, $this->plugin, $this->execute));
         }

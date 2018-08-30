@@ -1,40 +1,39 @@
 language: php
 
-sudo: false
+# Behat no longer passes when false.
+sudo: true
+
+addons:
+  firefox: "47.0.1"
+  postgresql: "9.3"
+  apt:
+    packages:
+      - oracle-java8-installer
+      - oracle-java8-set-default
+      - chromium-chromedriver
 
 cache:
   directories:
     - $HOME/.composer/cache
+    - $HOME/.npm
 
 php:
- - 5.4
+ - 7.2
 
 env:
   global:
     - IGNORE_PATHS=ignore
     - IGNORE_NAMES=ignore_name.php
-    - COVERAGE=false
+    - MUSTACHE_IGNORE_NAMES=broken.mustache
     - DB=pgsql
-  matrix:
-    - MOODLE_BRANCH=MOODLE_29_STABLE
-    - MOODLE_BRANCH=MOODLE_28_STABLE
-    - MOODLE_BRANCH=MOODLE_27_STABLE DB=mysqli
-
-matrix:
-  include:
-    - php: 7.0
-      env: MOODLE_BRANCH=MOODLE_30_STABLE
-    - php: 7.0
-      env: MOODLE_BRANCH=MOODLE_31_STABLE COVERAGE=true
-    - php: 7.0
-      env: MOODLE_BRANCH=master
+    - MOODLE_BRANCH=master
+    - PROFILE=chrome
 
 install:
-  # Several tools complain about xdebug slowdown.
   - phpenv config-rm xdebug.ini
-
-  - composer selfupdate
-  - composer install --no-interaction --prefer-dist
+  - nvm install 8.9
+  - nvm use 8.9
+  - make init
 
   # Mimic how a Moodle plugin would be run.
   - cp -R tests/Fixture/moodle-local_travis ../moodle-local_travis
@@ -45,24 +44,58 @@ install:
   - moodle-plugin-ci install
 
 script:
-  - composer validate
-  - composer lint
-  - php-cs-fixer --dry-run -v fix
-  - if [ "$COVERAGE" = true ]; then phpdbg -qrr $(which phpunit) --coverage-clover coverage.clover; fi
-  - if [ "$COVERAGE" = false ]; then phpunit; fi
+  - make test-phpunit
 
   # This is basically "integration" testing.
   - moodle-plugin-ci phplint
   - moodle-plugin-ci phpcpd
   - moodle-plugin-ci phpmd
   - moodle-plugin-ci codechecker
-  - moodle-plugin-ci csslint
-  - moodle-plugin-ci shifter
-  - moodle-plugin-ci jshint
   - moodle-plugin-ci validate
+  - moodle-plugin-ci savepoints
+  - moodle-plugin-ci mustache
+  - moodle-plugin-ci grunt
   - moodle-plugin-ci phpunit --coverage-text
-  - moodle-plugin-ci behat
+  - moodle-plugin-ci behat --profile $PROFILE
 
-after_script:
-  - if [ "$COVERAGE" = true ]; then wget https://scrutinizer-ci.com/ocular.phar; fi
-  - if [ "$COVERAGE" = true ]; then php ocular.phar code-coverage:upload --format=php-clover coverage.clover; fi
+jobs:
+  include:
+    - stage: Tests
+      addons: skip
+      install:
+        - phpenv config-rm xdebug.ini
+        - make init
+      script:
+        - make validate
+      after_script:
+        - make upload-code-coverage
+    - stage: Integration tests
+    - php: 7.1
+      env: MOODLE_BRANCH=MOODLE_34_STABLE
+    - php: 7.0
+      env: MOODLE_BRANCH=MOODLE_33_STABLE DB=mariadb
+      addons:
+        mariadb: 10.2
+        apt:
+          packages:
+            - oracle-java8-installer
+            - oracle-java8-set-default
+            - chromium-chromedriver
+    - php: 5.6
+      env: MOODLE_BRANCH=MOODLE_32_STABLE DB=mysqli PROFILE=default
+    - stage: Deploy
+      addons: skip
+      install: skip
+      script: skip
+      before_deploy:
+        - make build/moodle-plugin-ci.phar
+        - php build/moodle-plugin-ci.phar list
+      deploy:
+        provider: releases
+        api_key:
+          secure: 1A6XanGYBX2fjDfQF96LK8otHz9Sh9g29eq7O+4ntAFyN5hYTVxJBdtp6LFkoeEHeQJtHpl/vmw+htavL5UXcYHqLsX+suXH8JML0Bg5sTA/HIhksetl226PtbdJabD/5AerLzqf+PiHGagzBBqscUqkVl7DdHEVkC/OQCDNcB5onFNqSRlCP50WFyXHBr4TccrUuvHK+jKcG4AFMLU7f2Bo2j5NBQW+ucY/RdNczXrRo4et9JHZJRocPFxQMpOnV7fTrQaHlt+HQe5FikNM28Vh44uVj7ZGYLWZNmtQb9K3Fq9t+atObMcYjsjBbnqypzm8BUNDx2YfsZvcpNOEtksYx6rE58EXQgJCBod7azjt4ulIrKPNOK64A9s6SX/ZQ68VEGYCYlC412kWC6SwPp77iDRLv4Z0MpmvtZfJ1LbkvMx22SRJGBSD24INvLxh4XnfUN0qQ021HUNIbTQ8cBuTGzMWf7W2nYjEGbTVV1fTMcFFy8IXOhnodM1s5kbMDRjASxkNpMBbbhfh4b3WnBhoi+Ecqjq4DFhU7YLHdjLF1pkuRHoBn1I7vNbO+JaEMtTQHokDxBGe4hIehkGxs04Q//2tI7DsWyVLhCTStoC9OqQMTZmAJCUUVV/L9HV7HS6ZqgkBlPBvpld3g8cMqRVN19p4B09WyMQcK8usJEw=
+        file: build/moodle-plugin-ci.phar
+        skip_cleanup: true
+        on:
+          repo: moodlerooms/moodle-plugin-ci
+          tags: true

@@ -6,18 +6,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Tests\Installer\Database;
 
 use Moodlerooms\MoodlePluginCI\Installer\Database\DatabaseResolver;
 
-/**
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 class DatabaseResolverTest extends \PHPUnit_Framework_TestCase
 {
     public function testType()
@@ -32,13 +28,15 @@ class DatabaseResolverTest extends \PHPUnit_Framework_TestCase
             'Moodlerooms\MoodlePluginCI\Installer\Database\PostgresDatabase',
             $resolver->resolveDatabase('pgsql')
         );
+        $this->assertInstanceOf(
+            'Moodlerooms\MoodlePluginCI\Installer\Database\MariaDBDatabase',
+            $resolver->resolveDatabase('mariadb')
+        );
     }
 
-    /**
-     * @expectedException \DomainException
-     */
     public function testTypeError()
     {
+        $this->expectException(\DomainException::class);
         $resolver = new DatabaseResolver();
         $resolver->resolveDatabase('foo');
     }
@@ -59,9 +57,9 @@ class DatabaseResolverTest extends \PHPUnit_Framework_TestCase
             $database
         );
 
-        $this->assertEquals($name, $database->name);
-        $this->assertEquals($user, $database->user);
-        $this->assertEquals($pass, $database->pass);
-        $this->assertEquals($host, $database->host);
+        $this->assertSame($name, $database->name);
+        $this->assertSame($user, $database->user);
+        $this->assertSame($pass, $database->pass);
+        $this->assertSame($host, $database->host);
     }
 }

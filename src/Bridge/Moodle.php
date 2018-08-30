@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Bridge;
@@ -18,9 +18,6 @@ use PhpParser\Node\Scalar\String_;
 
 /**
  * Bridge to Moodle.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class Moodle
 {
@@ -140,18 +137,20 @@ class Moodle
     }
 
     /**
-     * Get the Behat data directory.
+     * Get a Moodle config value.
+     *
+     * @param string $name the config name
      *
      * @return string
      */
-    public function getBehatDataDirectory()
+    public function getConfig($name)
     {
         $this->requireConfig();
 
-        if (!property_exists($this->cfg, 'behat_dataroot')) {
-            throw new \RuntimeException('Failed to find $CFG->behat_dataroot in Moodle config file');
+        if (!property_exists($this->cfg, $name)) {
+            throw new \RuntimeException(sprintf('Failed to find $CFG->%s in Moodle config file', $name));
         }
 
-        return $this->cfg->behat_dataroot;
+        return $this->cfg->$name;
     }
 }

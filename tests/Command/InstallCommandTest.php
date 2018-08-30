@@ -6,44 +6,23 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Tests\Command;
 
 use Moodlerooms\MoodlePluginCI\Command\InstallCommand;
+use Moodlerooms\MoodlePluginCI\Command\PHPLintCommand;
 use Moodlerooms\MoodlePluginCI\Installer\InstallOutput;
 use Moodlerooms\MoodlePluginCI\Tests\Fake\Installer\DummyInstall;
+use Moodlerooms\MoodlePluginCI\Tests\MoodleTestCase;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Filesystem\Filesystem;
 
-/**
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class InstallCommandTest extends \PHPUnit_Framework_TestCase
+class InstallCommandTest extends MoodleTestCase
 {
-    private $tempDir;
-    private $pluginDir;
-
-    protected function setUp()
-    {
-        $this->tempDir   = sys_get_temp_dir().'/moodle-plugin-ci/InstallCommandTest'.time();
-        $this->pluginDir = $this->tempDir.'/plugin';
-
-        $fs = new Filesystem();
-        $fs->mkdir($this->tempDir);
-        $fs->mirror(__DIR__.'/../Fixture/moodle-local_travis', $this->pluginDir);
-    }
-
-    protected function tearDown()
-    {
-        $fs = new Filesystem();
-        $fs->remove($this->tempDir);
-    }
-
     protected function executeCommand()
     {
         $command          = new InstallCommand($this->tempDir.'/.env');
@@ -68,7 +47,7 @@ class InstallCommandTest extends \PHPUnit_Framework_TestCase
     public function testExecute()
     {
         $commandTester = $this->executeCommand();
-        $this->assertEquals(0, $commandTester->getStatusCode());
+        $this->assertSame(0, $commandTester->getStatusCode());
     }
 
     /**
@@ -80,7 +59,42 @@ class InstallCommandTest extends \PHPUnit_Framework_TestCase
     public function testCsvToArray($value, array $expected)
     {
         $command = new InstallCommand($this->tempDir.'/.env');
-        $this->assertEquals($expected, $command->csvToArray($value), "Converting this value: '$value'");
+        $this->assertSame($expected, $command->csvToArray($value), "Converting this value: '$value'");
+    }
+
+    public function testInitializePluginConfigDumper()
+    {
+        putenv('PHPLINT_IGNORE_NAMES=foo.php,bar.php');
+        putenv('PHPLINT_IGNORE_PATHS=bat,fiz/buz');
+
+        $command          = new InstallCommand($this->tempDir.'/.env');
+        $command->install = new DummyInstall(new InstallOutput());
+
+        $lintCommand         = new PHPLintCommand();
+        $lintCommand->plugin = $this->pluginDir;
+
+        $application = new Application();
+        $application->add($command);
+        $application->add($lintCommand);
+
+        $actual = $this->tempDir.'/config.yml';
+
+        $input  = new ArrayInput(['--not-paths' => 'global/path', '--not-names' => 'global_name.php'], $command->getDefinition());
+        $dumper = $command->initializePluginConfigDumper($input);
+        $dumper->dump($actual);
+
+        $expected = $this->dumpFile('expected.yml', <<<'EOT'
+filter:
+    notPaths: [global/path]
+    notNames: [global_name.php]
+filter-phplint:
+    notPaths: [bat, fiz/buz]
+    notNames: [foo.php, bar.php]
+
+EOT
+);
+
+        $this->assertFileEquals($expected, $actual);
     }
 
     public function csvToArrayProvider()

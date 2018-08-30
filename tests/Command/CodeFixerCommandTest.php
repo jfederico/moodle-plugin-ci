@@ -6,29 +6,40 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Tests\Command;
 
 use Moodlerooms\MoodlePluginCI\Command\CodeFixerCommand;
 use Moodlerooms\MoodlePluginCI\Tests\Fake\Bridge\DummyMoodlePlugin;
-use Moodlerooms\MoodlePluginCI\Tests\Fake\Process\DummyExecute;
+use Moodlerooms\MoodlePluginCI\Tests\MoodleTestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Yaml\Yaml;
 
-/**
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class CodeFixerCommandTest extends \PHPUnit_Framework_TestCase
+class CodeFixerCommandTest extends MoodleTestCase
 {
-    private $pluginDir;
-
     protected function setUp()
     {
-        $this->pluginDir = __DIR__.'/../Fixture/moodle-local_travis';
+        parent::setUp();
+
+        $content = <<<'EOT'
+<?php
+
+if (true) {
+
+} elseif (false) {
+
+}
+
+EOT;
+
+        $config = ['filter' => ['notNames' => ['ignore_name.php'], 'notPaths' => ['ignore']]];
+        $this->fs->dumpFile($this->pluginDir.'/.moodle-plugin-ci.yml', Yaml::dump($config));
+        $this->fs->dumpFile($this->pluginDir.'/fixable.php', $content
+);
     }
 
     protected function executeCommand($pluginDir = null)
@@ -39,7 +50,6 @@ class CodeFixerCommandTest extends \PHPUnit_Framework_TestCase
 
         $command          = new CodeFixerCommand();
         $command->plugin  = new DummyMoodlePlugin($pluginDir);
-        $command->execute = new DummyExecute();
 
         $application = new Application();
         $application->add($command);
@@ -54,7 +64,20 @@ class CodeFixerCommandTest extends \PHPUnit_Framework_TestCase
 
     public function testExecute()
     {
+        $this->expectOutputRegex('/Fixed 1 files/');
         $commandTester = $this->executeCommand();
-        $this->assertEquals(0, $commandTester->getStatusCode());
+        $this->assertSame(0, $commandTester->getStatusCode());
+
+        $expected = <<<'EOT'
+<?php
+
+if (true) {
+
+} else if (false) {
+
+}
+
+EOT;
+        $this->assertSame($expected, file_get_contents($this->pluginDir.'/fixable.php'));
     }
 }

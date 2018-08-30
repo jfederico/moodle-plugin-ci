@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Installer;
@@ -22,9 +22,6 @@ use Symfony\Component\Process\Process;
 
 /**
  * Installer.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class MoodleInstaller extends AbstractInstaller
 {
@@ -97,10 +94,12 @@ class MoodleInstaller extends AbstractInstaller
         $this->getOutput()->step('Moodle assets');
 
         $this->getOutput()->debug('Creating Moodle data directories');
+
+        $dirs = [$this->dataDir, $this->dataDir.'/phpu_moodledata', $this->dataDir.'/behat_moodledata', $this->dataDir.'/behat_dump'];
+
         $filesystem = new Filesystem();
-        $filesystem->mkdir($this->dataDir);
-        $filesystem->mkdir($this->dataDir.'/phpu_moodledata');
-        $filesystem->mkdir($this->dataDir.'/behat_moodledata');
+        $filesystem->mkdir($dirs);
+        $filesystem->chmod($dirs, 0777);
 
         $this->getOutput()->debug('Create Moodle database');
         $this->execute->mustRun($this->database->getCreateDatabaseCommand());
@@ -110,6 +109,11 @@ class MoodleInstaller extends AbstractInstaller
         $this->config->dump($this->moodle->directory.'/config.php', $contents);
 
         $this->addEnv('MOODLE_DIR', $this->moodle->directory);
+
+        // If PHP 5.6, add an INI file to disable a setting that causes a deprecation notice.
+        if (PHP_MAJOR_VERSION === 5 && PHP_MINOR_VERSION === 6) {
+            $this->execute->mustRun(sprintf('phpenv config-add %s', realpath(__DIR__.'/../../res/template/moodle.ini')));
+        }
     }
 
     /**

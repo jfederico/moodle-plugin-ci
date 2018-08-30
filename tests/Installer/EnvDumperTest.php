@@ -6,37 +6,17 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Tests\Installer;
 
 use Moodlerooms\MoodlePluginCI\Installer\EnvDumper;
-use Symfony\Component\Filesystem\Filesystem;
+use Moodlerooms\MoodlePluginCI\Tests\FilesystemTestCase;
 
-/**
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class EnvDumperTest extends \PHPUnit_Framework_TestCase
+class EnvDumperTest extends FilesystemTestCase
 {
-    private $tempDir;
-
-    protected function setUp()
-    {
-        $this->tempDir = sys_get_temp_dir().'/moodle-plugin-ci/EnvDumperTest'.time();
-
-        $fs = new Filesystem();
-        $fs->mkdir($this->tempDir);
-    }
-
-    protected function tearDown()
-    {
-        $fs = new Filesystem();
-        $fs->remove($this->tempDir);
-    }
-
     public function testDump()
     {
         $toFile = $this->tempDir.'/.env';
@@ -46,7 +26,7 @@ class EnvDumperTest extends \PHPUnit_Framework_TestCase
         $expected = 'TEST=value'.PHP_EOL.'FOO=bar'.PHP_EOL;
 
         $this->assertFileExists($toFile);
-        $this->assertEquals($expected, file_get_contents($toFile));
+        $this->assertSame($expected, file_get_contents($toFile));
     }
 
     public function testNoDump()

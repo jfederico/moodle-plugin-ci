@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Tests\PluginValidate;
@@ -16,10 +16,6 @@ use Moodlerooms\MoodlePluginCI\PluginValidate\Plugin;
 use Moodlerooms\MoodlePluginCI\PluginValidate\Requirements\FilterRequirements;
 use Moodlerooms\MoodlePluginCI\PluginValidate\Requirements\RequirementsResolver;
 
-/**
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 class FilterRequirementsTest extends \PHPUnit_Framework_TestCase
 {
     /**
@@ -52,7 +48,7 @@ class FilterRequirementsTest extends \PHPUnit_Framework_TestCase
         $files = $this->requirements->getRequiredFiles();
 
         $this->assertNotEmpty($files);
-        $this->assertTrue(in_array('filter.php', $files));
+        $this->assertTrue(in_array('filter.php', $files, true));
         foreach ($files as $file) {
             $this->assertInternalType('string', $file);
         }
@@ -72,6 +68,6 @@ class FilterRequirementsTest extends \PHPUnit_Framework_TestCase
     {
         $fileToken = $this->requirements->getRequiredStrings();
         $this->assertInstanceOf('Moodlerooms\MoodlePluginCI\PluginValidate\Finder\FileTokens', $fileToken);
-        $this->assertEquals('lang/en/filter_activitynames.php', $fileToken->file);
+        $this->assertSame('lang/en/filter_activitynames.php', $fileToken->file);
     }
 }

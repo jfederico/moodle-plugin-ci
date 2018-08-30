@@ -6,12 +6,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\PluginValidate;
 
+use Moodlerooms\MoodlePluginCI\PluginValidate\Finder\BehatTagFinder;
 use Moodlerooms\MoodlePluginCI\PluginValidate\Finder\CapabilityFinder;
 use Moodlerooms\MoodlePluginCI\PluginValidate\Finder\ClassFinder;
 use Moodlerooms\MoodlePluginCI\PluginValidate\Finder\FileTokens;
@@ -24,9 +25,6 @@ use Moodlerooms\MoodlePluginCI\PluginValidate\Requirements\AbstractRequirements;
 
 /**
  * Validates a plugin against a set of requirements.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class PluginValidate
 {
@@ -65,7 +63,7 @@ class PluginValidate
      */
     public function addError($message)
     {
-        $this->messages[] = sprintf("\xE2\x9D\x8C %s", $message);
+        $this->messages[] = sprintf('<fg=red>X %s</>', $message);
         $this->isValid    = false;
     }
 
@@ -74,7 +72,7 @@ class PluginValidate
      */
     public function addSuccess($message)
     {
-        $this->messages[] = sprintf("<info>\xE2\x9C\x94</info> %s", $message);
+        $this->messages[] = sprintf('<info>></info> %s', $message);
     }
 
     /**
@@ -114,6 +112,7 @@ class PluginValidate
         $this->findRequiredTokens(new CapabilityFinder(), [$this->requirements->getRequiredCapabilities()]);
         $this->findRequiredTokens(new TableFinder(), [$this->requirements->getRequiredTables()]);
         $this->findRequiredTokens(new TablePrefixFinder(), [$this->requirements->getRequiredTablePrefix()]);
+        $this->findRequiredTokens(new BehatTagFinder(), $this->requirements->getRequiredBehatTags());
     }
 
     /**

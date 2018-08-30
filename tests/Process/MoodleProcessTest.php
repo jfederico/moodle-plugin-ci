@@ -6,18 +6,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Tests\Process;
 
+use Moodlerooms\MoodlePluginCI\Process\MoodleDebugException;
+use Moodlerooms\MoodlePluginCI\Process\MoodlePhpException;
 use Moodlerooms\MoodlePluginCI\Process\MoodleProcess;
 
-/**
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 class MoodleProcessTest extends \PHPUnit_Framework_TestCase
 {
     private $outputWithDebugging;
@@ -95,11 +93,9 @@ class MoodleProcessTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($process->isSuccessful());
     }
 
-    /**
-     * @expectedException \Moodlerooms\MoodlePluginCI\Process\MoodlePhpException
-     */
     public function testMustRunError()
     {
+        $this->expectException(MoodlePhpException::class);
         $process = new MoodleProcess('-r "echo $foo[\'bar\'];"');
         $process->mustRun();
     }
@@ -130,21 +126,17 @@ class MoodleProcessTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    /**
-     * @expectedException \Moodlerooms\MoodlePluginCI\Process\MoodlePhpException
-     */
     public function testCheckOutputForProblemsPhpError()
     {
+        $this->expectException(MoodlePhpException::class);
         $process = new MoodleProcess('-r "echo $foo[\'bar\'];"');
         $process->run();
         $process->checkOutputForProblems();
     }
 
-    /**
-     * @expectedException \Moodlerooms\MoodlePluginCI\Process\MoodleDebugException
-     */
     public function testCheckOutputForProblemsDebuggingMessage()
     {
+        $this->expectException(MoodleDebugException::class);
         $process = new MoodleProcess(sprintf('-r "echo \"%s\";"', $this->outputWithDebugging));
         $process->run();
         $process->checkOutputForProblems();

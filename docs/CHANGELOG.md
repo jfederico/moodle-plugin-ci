@@ -1,4 +1,8 @@
-# Change Log
+---
+layout: page
+title: Change log
+---
+
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
@@ -6,6 +10,91 @@ The format of this change log follows the advice given at [Keep a CHANGELOG](htt
 
 ## [Unreleased]
 No unreleased changes.
+
+## [2.3.0] - 2018-05-14
+### Changed
+- Recommending `sudo: true` when using Behat. See
+  [#70](https://github.com/moodlerooms/moodle-plugin-ci/issues/70) for details.
+- Updated project dependencies.  Most notably, Moodle Code Checker v2.7.1.
+
+### Added
+- Support for MariaDB.  To use, set `DB=mariadb` in your build.  In additon, see
+  [database setup](https://docs.travis-ci.com/user/database-setup/#MariaDB)
+  documentation for how to add MariaDB to your build.
+
+## [2.2.0] - 2017-11-03
+### Changed
+- ACTION REQUIRED: changed the `nvm install node` to `nvm install 8.9` and `nvm use 8.9` in
+  the [.travis.dist.yml] and you must update your `.travis.yml` file to get Grunt commands
+  running again.  These commands match what the Moodle project is currently using.
+
+### Fixed
+- `moodle-plugin-ci validate` now only regards required language strings as present if they are assigned to the
+  `$string` array. Before, other array variables were accepted although Moodle would not recognise them.  
+
+### Added
+- `moodle-plugin-ci install` now provides an option `--no-init` to skip initialization of the Behat and PHPUnit
+  test suites.  Only use this option if execution of these tests are not required.
+
+## [2.1.1] - 2017-09-29
+### Fixed
+- `moodle-plugin-ci validate` now properly validates all table name prefixes in the plugin's
+  `db/install.xml` file.  Before, if any table name was properly prefixed, this would pass.
+
+## [2.1.0] - 2017-09-13
+### Fixed
+- ACTION REQUIRED: added `firefox: "47.0.1"` to [.travis.dist.yml] and you must add it to your
+  `.travis.yml` file to get Behat running again.  This is because Travis CI changed their default
+  environment from Precise to Trusy.  On Trusty, the default Firefox version is 55, which is not
+  compatible with Selenium.
+- Fixed `moodle-plugin-ci mustache` command when `_JAVA_OPTIONS` environment variable is set.
+  This is now set by default in Trusty builds.
+
+### Added
+- Can now use Chrome with Behat, see [help document](Chrome.md) for details.
+
+### Changed
+- Set password via environment when connecting with Postgres.
+
+## [2.0.1] - 2017-06-07
+### Fixed
+- PHPUnit code coverage whitelist for Moodle 3.3 or later.
+
+## [2.0.0] - 2017-06-01
+### Changed
+- BREAKING: requires PHP 5.6 or later.
+- BREAKING: requires Moodle 3.2 or later.
+- `moodle-plugin-ci codechecker` command no longer processes Javascript files.  Use the new `grunt` command instead.
+- `moodle-plugin-ci codechecker` now runs the PHP Compatibility coding standard.  This will now check for
+  PHP compatibility issues for the **currently** running PHP version.  This makes it important to run this command
+  on your lowest and highest supported PHP version.  EG: on PHP 5.6 and 7.1.
+- `moodle-plugin-ci validate` command now validates tags in Behat feature files.  EG: mod_forum should have @mod
+  and @mod_forum tags in each feature file. 
+- The `.travis.dist.yml` now installs Version 2 of this tool.
+- Updated Moodle coding standard to v2.7.0.
+
+### Removed
+- BREAKING: removed `moodle-plugin-ci csslint` command.  Replaced with `grunt` command.
+- BREAKING: removed `moodle-plugin-ci jshint` command.  Replaced with `grunt` command.
+- BREAKING: removed `moodle-plugin-ci shifter` command.  Replaced with `grunt` command.
+- The Composer self update step from `.travis.dist.yml`.
+
+### Added
+- Defining ignore files per command, see [help document](IgnoringFiles.md) for details.
+- `moodle-plugin-ci mustache` command which lints your Mustache template files.
+- `moodle-plugin-ci grunt` command which runs Grunt tasks on the plugin. See [help document](TravisFileExplained.md)
+  for more details about the command.
+- `moodle-plugin-ci savepoints` command which checks your plugin's upgrade steps.
+- `--dump` option to `behat` command to print Behat HTML failure captures.
+- `--auto-rerun` option to `behat` automatically rerun failures, defaults to 2 reruns.
+- The `.travis.dist.yml` now has steps to install Java 8.
+- The `.travis.dist.yml` now has steps to install latest version of NodeJS and NPM.
+- The `.travis.dist.yml` now has a step to cache the NPM cache.
+- The `.travis.dist.yml` now has a step to install PostgreSQL 9.3.
+
+## [1.5.8] - 2017-03-30
+### Fixed
+- PHP 5.6 issue with Behat.
 
 ## [1.5.7] - 2017-02-06
 ### Fixed
@@ -131,7 +220,14 @@ No unreleased changes.
 - `moodle-plugin-ci shifter` command.  Run YUI Shifter on plugin YUI modules.
 - `moodle-plugin-ci csslint` command.  Lints the CSS files in the plugin.
 
-[Unreleased]: https://github.com/moodlerooms/moodle-plugin-ci/compare/1.5.7...master
+[Unreleased]: https://github.com/moodlerooms/moodle-plugin-ci/compare/2.3.0...master
+[2.3.0]: https://github.com/moodlerooms/moodle-plugin-ci/compare/2.2.0...2.3.0
+[2.2.0]: https://github.com/moodlerooms/moodle-plugin-ci/compare/2.1.1...2.2.0
+[2.1.1]: https://github.com/moodlerooms/moodle-plugin-ci/compare/2.1.0...2.1.1
+[2.1.0]: https://github.com/moodlerooms/moodle-plugin-ci/compare/2.0.1...2.1.0
+[2.0.1]: https://github.com/moodlerooms/moodle-plugin-ci/compare/2.0.0...2.0.1
+[2.0.0]: https://github.com/moodlerooms/moodle-plugin-ci/compare/1.5.8...2.0.0
+[1.5.8]: https://github.com/moodlerooms/moodle-plugin-ci/compare/1.5.7...1.5.8
 [1.5.7]: https://github.com/moodlerooms/moodle-plugin-ci/compare/1.5.6...1.5.7
 [1.5.6]: https://github.com/moodlerooms/moodle-plugin-ci/compare/1.5.5...1.5.6
 [1.5.5]: https://github.com/moodlerooms/moodle-plugin-ci/compare/1.5.4...1.5.5
@@ -146,3 +242,4 @@ No unreleased changes.
 [1.3.0]: https://github.com/moodlerooms/moodle-plugin-ci/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/moodlerooms/moodle-plugin-ci/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/moodlerooms/moodle-plugin-ci/compare/1.0.0...1.1.0
+[.travis.dist.yml]: https://github.com/moodlerooms/moodle-plugin-ci/blob/master/.travis.dist.yml

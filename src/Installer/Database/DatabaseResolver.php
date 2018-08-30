@@ -6,17 +6,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Installer\Database;
 
 /**
  * Database resolver.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class DatabaseResolver
 {
@@ -63,7 +60,7 @@ class DatabaseResolver
                 return $database;
             }
         }
-        throw new \DomainException(sprintf('Unknown database type (%s). Please use mysqli or pgsql.', $type));
+        throw new \DomainException(sprintf('Unknown database type (%s). Please use mysqli, pgsql or mariadb.', $type));
     }
 
     /**
@@ -71,6 +68,6 @@ class DatabaseResolver
      */
     private function getDatabases()
     {
-        return [new MySQLDatabase(), new PostgresDatabase()];
+        return [new MySQLDatabase(), new PostgresDatabase(), new MariaDBDatabase()];
     }
 }

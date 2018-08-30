@@ -7,11 +7,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use Dotenv\Dotenv;
 use Moodlerooms\MoodlePluginCI\Command\AddConfigCommand;
 use Moodlerooms\MoodlePluginCI\Command\AddPluginCommand;
 use Moodlerooms\MoodlePluginCI\Command\BehatCommand;
@@ -20,41 +19,43 @@ use Moodlerooms\MoodlePluginCI\Command\CodeFixerCommand;
 use Moodlerooms\MoodlePluginCI\Command\CompletionCommand;
 use Moodlerooms\MoodlePluginCI\Command\CopyPasteDetectorCommand;
 use Moodlerooms\MoodlePluginCI\Command\CoverallsUploadCommand;
-use Moodlerooms\MoodlePluginCI\Command\CSSLintCommand;
+use Moodlerooms\MoodlePluginCI\Command\GruntCommand;
 use Moodlerooms\MoodlePluginCI\Command\InstallCommand;
-use Moodlerooms\MoodlePluginCI\Command\JSHintCommand;
 use Moodlerooms\MoodlePluginCI\Command\MessDetectorCommand;
+use Moodlerooms\MoodlePluginCI\Command\MustacheCommand;
 use Moodlerooms\MoodlePluginCI\Command\ParallelCommand;
 use Moodlerooms\MoodlePluginCI\Command\PHPLintCommand;
 use Moodlerooms\MoodlePluginCI\Command\PHPUnitCommand;
-use Moodlerooms\MoodlePluginCI\Command\ShifterCommand;
+use Moodlerooms\MoodlePluginCI\Command\SavePointsCommand;
+use Moodlerooms\MoodlePluginCI\Command\SelfUpdateCommand;
 use Moodlerooms\MoodlePluginCI\Command\ValidateCommand;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Dotenv\Dotenv;
 
-// Global install.
 if (file_exists(__DIR__.'/../../../autoload.php')) {
+    // Global install.
     /** @noinspection PhpIncludeInspection */
     require_once __DIR__.'/../../../autoload.php';
-// Project install.
 } elseif (file_exists(__DIR__.'/../vendor/autoload.php')) {
+    // Project install.
     require_once __DIR__.'/../vendor/autoload.php';
 } else {
     fwrite(STDERR, 'Failed to find Composer\'s autoload file. You might need to run Composer\'s install on this project'.PHP_EOL);
     die(1);
 }
 
-define('ENV_DIR', dirname(__DIR__));
-define('ENV_FILE', ENV_DIR.'/.env');
+define('MOODLE_PLUGIN_CI_BOXED', '@is_boxed@');
+define('ENV_FILE', dirname(__DIR__).'/.env');
 
 if (file_exists(ENV_FILE)) {
     // Use this file because PHP cannot write to the environment.
     // These are used to allow the install command to relay important
     // information to the other commands so they can run with no args.
-    $env = new Dotenv(ENV_DIR);
-    $env->load();
+    $env = new Dotenv();
+    $env->load(ENV_FILE);
 }
 
-$application = new Application('Moodle Plugin CI', '1.5.7');
+$application = new Application('Moodle Plugin CI', '@package_version@');
 $application->add(new AddConfigCommand());
 $application->add(new AddPluginCommand(ENV_FILE));
 $application->add(new BehatCommand());
@@ -63,13 +64,18 @@ $application->add(new CodeFixerCommand());
 $application->add(new CompletionCommand());
 $application->add(new CopyPasteDetectorCommand());
 $application->add(new CoverallsUploadCommand());
-$application->add(new CSSLintCommand());
+$application->add(new GruntCommand());
 $application->add(new InstallCommand(ENV_FILE));
-$application->add(new JSHintCommand());
 $application->add(new MessDetectorCommand());
+$application->add(new MustacheCommand());
 $application->add(new ParallelCommand());
 $application->add(new PHPLintCommand());
 $application->add(new PHPUnitCommand());
-$application->add(new ShifterCommand());
+$application->add(new SavePointsCommand());
 $application->add(new ValidateCommand());
+
+// Only add the self update command if we are boxed as a phar.
+if (MOODLE_PLUGIN_CI_BOXED === 'BOXED') {
+    $application->add(new SelfUpdateCommand());
+}
 $application->run();

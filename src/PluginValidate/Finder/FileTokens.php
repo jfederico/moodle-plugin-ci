@@ -6,17 +6,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\PluginValidate\Finder;
 
 /**
  * A list of tokens to find in a file.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class FileTokens
 {
@@ -85,6 +82,22 @@ class FileTokens
     }
 
     /**
+     * Require that a the file has all of these tokens.
+     *
+     * @param array $tokens
+     *
+     * @return FileTokens
+     */
+    public function mustHaveAll(array $tokens)
+    {
+        foreach ($tokens as $token) {
+            $this->mustHave($token);
+        }
+
+        return $this;
+    }
+
+    /**
      * Require that a the file has any of the passed tokens.
      *
      * @param array $tokens
@@ -140,5 +153,15 @@ class FileTokens
         }
 
         return true;
+    }
+
+    /**
+     * Reset found state on all tokens.
+     */
+    public function resetTokens()
+    {
+        foreach ($this->tokens as $token) {
+            $token->reset();
+        }
     }
 }

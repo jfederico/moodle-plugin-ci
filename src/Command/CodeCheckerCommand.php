@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Command;
@@ -21,9 +21,6 @@ use Symfony\Component\Finder\Finder;
 
 /**
  * Run Moodle Code Checker on a plugin.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class CodeCheckerCommand extends AbstractPluginCommand
 {
@@ -61,7 +58,7 @@ class CodeCheckerCommand extends AbstractPluginCommand
             $this->standard = $resolver->resolve($this->standard);
         }
 
-        $this->finder = Finder::create()->notPath('yui/build')->notPath('amd/build')->name('*.php')->name('*.js')->notName('*-min.js');
+        $this->finder = Finder::create()->name('*.php');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -81,6 +78,8 @@ class CodeCheckerCommand extends AbstractPluginCommand
             'showProgress' => true,
             'reportWidth'  => 120,
         ]);
+
+        \PHP_CodeSniffer::setConfigData('testVersion', PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION, true);
 
         $sniffer = new \PHP_CodeSniffer();
         $sniffer->setCli($cli);

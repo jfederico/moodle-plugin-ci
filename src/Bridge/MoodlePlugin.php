@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Bridge;
@@ -26,9 +26,6 @@ use Symfony\Component\Yaml\Yaml;
  * and uses Moodle API to get information about
  * the plugin.  Very important, the plugin may not
  * be installed into Moodle.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class MoodlePlugin
 {
@@ -38,6 +35,16 @@ class MoodlePlugin
      * @var string
      */
     public $directory;
+
+    /**
+     * The context in which we are running.
+     *
+     * EG: this is the command name and it should only
+     * be used for reading configs.
+     *
+     * @var string
+     */
+    public $context = '';
 
     /**
      * Cached component string.
@@ -64,9 +71,9 @@ class MoodlePlugin
     /**
      * Get a plugin's component name.
      *
-     * @return string
-     *
      * @throws \RuntimeException
+     *
+     * @return string
      */
     public function getComponent()
     {
@@ -138,8 +145,7 @@ class MoodlePlugin
      */
     public function hasUnitTests()
     {
-        $finder = new Finder();
-        $result = $finder->files()->in($this->directory)->path('tests')->name('*_test.php')->count();
+        $result = Finder::create()->files()->in($this->directory)->path('tests')->name('*_test.php')->count();
 
         return $result !== 0;
     }
@@ -151,10 +157,33 @@ class MoodlePlugin
      */
     public function hasBehatFeatures()
     {
-        $finder = new Finder();
-        $result = $finder->files()->in($this->directory)->path('tests/behat')->name('*.feature')->count();
+        $result = Finder::create()->files()->in($this->directory)->path('tests/behat')->name('*.feature')->count();
 
         return $result !== 0;
+    }
+
+    /**
+     * Determine if the plugin has any files with a given name pattern.
+     *
+     * @param string $pattern File name pattern
+     *
+     * @return bool
+     */
+    public function hasFilesWithName($pattern)
+    {
+        $result = $this->getFiles(Finder::create()->name($pattern));
+
+        return count($result) !== 0;
+    }
+
+    /**
+     * Determine if the plugin has any Nodejs dependencies.
+     *
+     * @return bool
+     */
+    public function hasNodeDependencies()
+    {
+        return is_file($this->directory.'/package.json');
     }
 
     /**
@@ -186,7 +215,12 @@ class MoodlePlugin
             return [];
         }
 
-        $config = Yaml::parse($configFile);
+        $config = Yaml::parse(file_get_contents($configFile));
+
+        // Search for context (AKA command) specific filter first.
+        if (!empty($this->context) && array_key_exists('filter-'.$this->context, $config)) {
+            return $config['filter-'.$this->context];
+        }
 
         return array_key_exists('filter', $config) ? $config['filter'] : [];
     }

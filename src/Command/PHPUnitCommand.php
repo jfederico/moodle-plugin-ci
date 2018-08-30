@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Command;
@@ -18,9 +18,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Run PHPUnit tests.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class PHPUnitCommand extends AbstractMoodleCommand
 {
@@ -50,7 +47,7 @@ class PHPUnitCommand extends AbstractMoodleCommand
             return $this->outputSkip($output, 'No PHPUnit tests to run, free pass!');
         }
 
-        $colors  = $output->isDecorated() ? '--colors' : '';
+        $colors  = $output->isDecorated() ? '--colors="always"' : '';
         $binary  = $this->resolveBinary($input);
         $options = $this->resolveOptions($input);
         $process = $this->execute->passThrough(

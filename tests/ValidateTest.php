@@ -6,41 +6,33 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Tests;
 
 use Moodlerooms\MoodlePluginCI\Validate;
 
-/**
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 class ValidateTest extends \PHPUnit_Framework_TestCase
 {
     public function testDirectory()
     {
         $validate = new Validate();
-        $this->assertEquals(__DIR__, $validate->directory(__DIR__));
-        $this->assertEquals(__DIR__.'/..', $validate->directory(__DIR__.'/..'));
+        $this->assertSame(__DIR__, $validate->directory(__DIR__));
+        $this->assertSame(__DIR__.'/..', $validate->directory(__DIR__.'/..'));
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testDirectoryRealPathFail()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $validate = new Validate();
         $validate->directory('aaa');
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testDirectoryIsFile()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $validate = new Validate();
         $validate->directory(__FILE__);
     }
@@ -48,24 +40,20 @@ class ValidateTest extends \PHPUnit_Framework_TestCase
     public function testFilePath()
     {
         $validate = new Validate();
-        $this->assertEquals(__FILE__, $validate->filePath(__FILE__));
-        $this->assertEquals(__DIR__.'/../README.md', $validate->filePath(__DIR__.'/../README.md'));
+        $this->assertSame(__FILE__, $validate->filePath(__FILE__));
+        $this->assertSame(__DIR__.'/../README.md', $validate->filePath(__DIR__.'/../README.md'));
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testFilePathRealPathFail()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $validate = new Validate();
         $validate->filePath('aaa.txt');
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testFilePathIsDirectory()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $validate = new Validate();
         $validate->filePath(__DIR__);
     }
@@ -78,17 +66,17 @@ class ValidateTest extends \PHPUnit_Framework_TestCase
     public function testGitBranch($branch)
     {
         $validate = new Validate();
-        $this->assertEquals($branch, $validate->gitBranch($branch), "Validate that $branch is valid");
+        $this->assertSame($branch, $validate->gitBranch($branch), "Validate that $branch is valid");
     }
 
     /**
      * @param string $branch
      *
      * @dataProvider invalidGitBranchProvider
-     * @expectedException \InvalidArgumentException
      */
     public function testGitBranchInvalid($branch)
     {
+        $this->expectException(\InvalidArgumentException::class);
         $validate = new Validate();
         $validate->gitBranch($branch);
     }
@@ -101,17 +89,17 @@ class ValidateTest extends \PHPUnit_Framework_TestCase
     public function testUrl($url)
     {
         $validate = new Validate();
-        $this->assertEquals($url, $validate->gitUrl($url), "Validate that $url is valid");
+        $this->assertSame($url, $validate->gitUrl($url), "Validate that $url is valid");
     }
 
     /**
      * @param string $url
      *
      * @dataProvider invalidUrlProvider
-     * @expectedException \InvalidArgumentException
      */
     public function testInvalidUrl($url)
     {
+        $this->expectException(\InvalidArgumentException::class);
         $validate = new Validate();
         $validate->gitUrl($url);
     }

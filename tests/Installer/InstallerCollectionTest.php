@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Tests\Installer;
@@ -16,10 +16,6 @@ use Moodlerooms\MoodlePluginCI\Installer\InstallerCollection;
 use Moodlerooms\MoodlePluginCI\Installer\InstallOutput;
 use Moodlerooms\MoodlePluginCI\Tests\Fake\Installer\DummyInstaller;
 
-/**
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 class InstallerCollectionTest extends \PHPUnit_Framework_TestCase
 {
     public function testAll()
@@ -50,11 +46,11 @@ class InstallerCollectionTest extends \PHPUnit_Framework_TestCase
 
         $expected = [
             'FOO'  => 'bar',
-            'BAT'  => 'baz',
             'THIS' => 'that',
+            'BAT'  => 'baz',
         ];
 
-        $this->assertEquals($expected, $installers->mergeEnv());
+        $this->assertSame($expected, $installers->mergeEnv());
     }
 
     public function testTotalSteps()
@@ -66,6 +62,6 @@ class InstallerCollectionTest extends \PHPUnit_Framework_TestCase
         $installers->add(new DummyInstaller());
         $installers->add(new DummyInstaller());
 
-        $this->assertEquals($installers->sumStepCount(), $installer->stepCount() * 3);
+        $this->assertSame($installers->sumStepCount(), $installer->stepCount() * 3);
     }
 }

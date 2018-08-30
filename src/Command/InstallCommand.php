@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Command;
@@ -31,9 +31,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Install command.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class InstallCommand extends Command
 {
@@ -83,14 +80,15 @@ class InstallCommand extends Command
             ->addOption('repo', null, InputOption::VALUE_REQUIRED, 'Moodle repository to clone', $repo)
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'Moodle git branch to clone, EG: MOODLE_29_STABLE', $branch)
             ->addOption('plugin', null, InputOption::VALUE_REQUIRED, 'Path to Moodle plugin', $plugin)
-            ->addOption('db-type', null, InputOption::VALUE_REQUIRED, 'Database type, mysqli or pgsql', $type)
+            ->addOption('db-type', null, InputOption::VALUE_REQUIRED, 'Database type, mysqli, pgsql or mariadb', $type)
             ->addOption('db-user', null, InputOption::VALUE_REQUIRED, 'Database user')
             ->addOption('db-pass', null, InputOption::VALUE_REQUIRED, 'Database pass', '')
             ->addOption('db-name', null, InputOption::VALUE_REQUIRED, 'Database name', 'moodle')
             ->addOption('db-host', null, InputOption::VALUE_REQUIRED, 'Database host', 'localhost')
             ->addOption('not-paths', null, InputOption::VALUE_REQUIRED, 'CSV of file paths to exclude', $paths)
             ->addOption('not-names', null, InputOption::VALUE_REQUIRED, 'CSV of file names to exclude', $names)
-            ->addOption('extra-plugins', null, InputOption::VALUE_REQUIRED, 'Directory of extra plugins to install', $extra);
+            ->addOption('extra-plugins', null, InputOption::VALUE_REQUIRED, 'Directory of extra plugins to install', $extra)
+            ->addOption('no-init', null, InputOption::VALUE_NONE, 'Prevent PHPUnit and Behat initialization');
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output)
@@ -150,10 +148,6 @@ class InstallCommand extends Command
             $pluginsDir = realpath($validate->directory($pluginsDir));
         }
 
-        $dumper = new ConfigDumper();
-        $dumper->addSection('filter', 'notPaths', $this->csvToArray($input->getOption('not-paths')));
-        $dumper->addSection('filter', 'notNames', $this->csvToArray($input->getOption('not-names')));
-
         $factory             = new InstallerFactory();
         $factory->moodle     = new Moodle($input->getOption('moodle'));
         $factory->plugin     = new MoodlePlugin($pluginDir);
@@ -161,8 +155,9 @@ class InstallCommand extends Command
         $factory->repo       = $validate->gitUrl($input->getOption('repo'));
         $factory->branch     = $validate->gitBranch($input->getOption('branch'));
         $factory->dataDir    = $input->getOption('data');
-        $factory->dumper     = $dumper;
+        $factory->dumper     = $this->initializePluginConfigDumper($input);
         $factory->pluginsDir = $pluginsDir;
+        $factory->noInit     = $input->getOption('no-init');
         $factory->database   = $resolver->resolveDatabase(
             $input->getOption('db-type'),
             $input->getOption('db-name'),
@@ -172,6 +167,38 @@ class InstallCommand extends Command
         );
 
         return $factory;
+    }
+
+    /**
+     * @param InputInterface $input
+     *
+     * @return ConfigDumper
+     */
+    public function initializePluginConfigDumper(InputInterface $input)
+    {
+        $dumper = new ConfigDumper();
+        $dumper->addSection('filter', 'notPaths', $this->csvToArray($input->getOption('not-paths')));
+        $dumper->addSection('filter', 'notNames', $this->csvToArray($input->getOption('not-names')));
+
+        foreach ($this->getApplication()->all() as $command) {
+            if (!$command instanceof AbstractPluginCommand) {
+                continue;
+            }
+
+            $prefix   = strtoupper($command->getName());
+            $envPaths = $prefix.'_IGNORE_PATHS';
+            $envNames = $prefix.'_IGNORE_NAMES';
+
+            $paths = getenv($envPaths) !== false ? getenv($envPaths) : null;
+            $names = getenv($envNames) !== false ? getenv($envNames) : null;
+
+            if (!empty($paths) || !empty($names)) {
+                $dumper->addSection('filter-'.$command->getName(), 'notPaths', $this->csvToArray($paths));
+                $dumper->addSection('filter-'.$command->getName(), 'notNames', $this->csvToArray($names));
+            }
+        }
+
+        return $dumper;
     }
 
     /**

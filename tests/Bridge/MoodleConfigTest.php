@@ -6,42 +6,24 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Tests\Bridge;
 
 use Moodlerooms\MoodlePluginCI\Bridge\MoodleConfig;
 use Moodlerooms\MoodlePluginCI\Installer\Database\MySQLDatabase;
-use Symfony\Component\Filesystem\Filesystem;
+use Moodlerooms\MoodlePluginCI\Tests\FilesystemTestCase;
 
-/**
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class MoodleConfigTest extends \PHPUnit_Framework_TestCase
+class MoodleConfigTest extends FilesystemTestCase
 {
-    private $tempDir;
-
-    protected function setUp()
-    {
-        $this->tempDir = sys_get_temp_dir().'/moodle-plugin-ci/MoodleConfigTest'.time();
-        mkdir($this->tempDir, 0777, true);
-    }
-
-    protected function tearDown()
-    {
-        $fs = new Filesystem();
-        $fs->remove($this->tempDir);
-    }
-
     public function testCreateContents()
     {
         $config   = new MoodleConfig();
         $contents = $config->createContents(new MySQLDatabase(), '/path/to/moodledata');
 
-        $this->assertEquals(file_get_contents(__DIR__.'/../Fixture/example-config.php'), $contents);
+        $this->assertSame(file_get_contents(__DIR__.'/../Fixture/example-config.php'), $contents);
     }
 
     public function testInjectLineIntoConfig()
@@ -63,49 +45,42 @@ EOT;
 
         $config   = new MoodleConfig();
         $contents = $config->injectLine($before, 'New Line');
-        $this->assertEquals($expected, $contents);
+        $this->assertSame($expected, $contents);
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
     public function testInjectLineIntoConfigMissingPlaceholder()
     {
+        $this->expectException(\RuntimeException::class);
         $config = new MoodleConfig();
         $config->injectLine('Bad param', 'New Line');
     }
 
     public function testRead()
     {
-        $fs = new Filesystem();
-        $fs->dumpFile($this->tempDir.'/test.txt', 'Test');
+        $this->dumpFile('test.txt', 'Test');
 
         $config   = new MoodleConfig();
         $contents = $config->read($this->tempDir.'/test.txt');
 
-        $this->assertEquals('Test', $contents);
+        $this->assertSame('Test', $contents);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testReadFileNotFound()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $config = new MoodleConfig();
         $config->read($this->tempDir.'/test.txt');
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
     public function testReadFail()
     {
-        $fs = new Filesystem();
-        $fs->dumpFile($this->tempDir.'/test.txt', 'Test');
-        $fs->chmod($this->tempDir.'/test.txt', 0222);
+        $this->expectException(\RuntimeException::class);
+
+        $tempFile = $this->dumpFile('test.txt', 'Test');
+        $this->fs->chmod($tempFile, 0222);
 
         $config = new MoodleConfig();
-        $config->read($this->tempDir.'/test.txt');
+        $config->read($tempFile);
     }
 
     public function testDump()

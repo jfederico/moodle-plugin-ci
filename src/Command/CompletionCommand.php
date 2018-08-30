@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Command;
@@ -19,12 +19,15 @@ use Stecman\Component\Symfony\Console\BashCompletion\CompletionHandler;
 
 /**
  * Customized shell completion.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class CompletionCommand extends BaseCompletionCommand
 {
+    protected function configure()
+    {
+        parent::configure();
+        $this->setHidden(true);
+    }
+
     protected function configureCompletion(CompletionHandler $handler)
     {
         // Completion for plugin argument/option to file system paths.

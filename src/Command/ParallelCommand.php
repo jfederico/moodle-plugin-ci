@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Command;
@@ -20,9 +20,6 @@ use Symfony\Component\Process\Process;
 
 /**
  * Runs all of the testing commands in parallel.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class ParallelCommand extends AbstractMoodleCommand
 {
@@ -58,7 +55,7 @@ class ParallelCommand extends AbstractMoodleCommand
      */
     public function initializeProcesses()
     {
-        $bin    = realpath(__DIR__.'/../../bin/moodle-plugin-ci');
+        $bin    = 'php '.$_SERVER['PHP_SELF'];
         $plugin = $this->plugin->directory;
         $moodle = $this->moodle->directory;
 
@@ -67,10 +64,10 @@ class ParallelCommand extends AbstractMoodleCommand
             'phpcpd'      => new Process(sprintf('%s phpcpd --ansi %s', $bin, $plugin)),
             'phpmd'       => new Process(sprintf('%s phpmd --ansi -m %s %s', $bin, $moodle, $plugin)),
             'codechecker' => new Process(sprintf('%s codechecker --ansi %s', $bin, $plugin)),
-            'csslint'     => new Process(sprintf('%s csslint --ansi %s', $bin, $plugin)),
-            'shifter'     => new Process(sprintf('%s shifter --ansi %s', $bin, $plugin)),
-            'jshint'      => new Process(sprintf('%s jshint --ansi %s', $bin, $plugin)),
             'validate'    => new Process(sprintf('%s validate --ansi -m %s %s', $bin, $moodle, $plugin)),
+            'savepoints'  => new Process(sprintf('%s savepoints --ansi %s', $bin, $plugin)),
+            'mustache'    => new Process(sprintf('%s mustache --ansi -m %s %s', $bin, $moodle, $plugin)),
+            'grunt'       => new Process(sprintf('%s grunt --ansi -m %s %s', $bin, $moodle, $plugin)),
             'phpunit'     => new Process(sprintf('%s phpunit --ansi -m %s %s', $bin, $moodle, $plugin)),
             'behat'       => new Process(sprintf('%s behat --ansi -m %s %s', $bin, $moodle, $plugin)),
         ];

@@ -6,20 +6,18 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\PluginValidate\Finder;
 
 use PhpParser\Node\Expr\ArrayDimFetch;
+use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Scalar\String_;
 
 /**
  * Finds Moodle language strings in a file.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class LangFinder extends AbstractParserFinder
 {
@@ -35,6 +33,11 @@ class LangFinder extends AbstractParserFinder
         foreach ($this->filter->filterAssignments($statements) as $assign) {
             // Looking for a assignment to an array key, EG: $string['something'].
             if ($assign->var instanceof ArrayDimFetch) {
+                // Verify that the array name is $string.
+                $arrayName = $assign->var->var;
+                if (!$arrayName instanceof Variable || $arrayName->name !== 'string') {
+                    continue;
+                }
                 // Grab the array index.
                 $arrayIndex = $assign->var->dim;
                 if ($arrayIndex instanceof String_) {

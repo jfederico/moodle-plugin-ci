@@ -6,14 +6,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Command;
 
 use Moodlerooms\MoodlePluginCI\Bridge\MessDetectorRenderer;
-use Moodlerooms\MoodlePluginCI\Validate;
 use PHPMD\PHPMD;
 use PHPMD\RuleSetFactory;
 use PHPMD\Writer\StreamWriter;
@@ -24,9 +23,6 @@ use Symfony\Component\Finder\Finder;
 
 /**
  * Run Moodle Code Checker on a plugin.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class MessDetectorCommand extends AbstractMoodleCommand
 {
@@ -34,11 +30,9 @@ class MessDetectorCommand extends AbstractMoodleCommand
     {
         parent::configure();
 
-        $rules = realpath(__DIR__.'/../../res/config/phpmd.xml');
-
         $this->setName('phpmd')
             ->setDescription('Run PHP Mess Detector on a plugin')
-            ->addOption('rules', 'r', InputOption::VALUE_REQUIRED, 'Path to PHP Mess Detector rule set', $rules);
+            ->addOption('rules', 'r', InputOption::VALUE_REQUIRED, 'Path to PHP Mess Detector rule set');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -49,8 +43,7 @@ class MessDetectorCommand extends AbstractMoodleCommand
         if (count($files) === 0) {
             return $this->outputSkip($output);
         }
-        $validate = new Validate();
-        $rules    = realpath($validate->filePath($input->getOption('rules')));
+        $rules = $input->getOption('rules') ?: __DIR__.'/../../res/config/phpmd.xml';
 
         $renderer = new MessDetectorRenderer($output, $this->moodle->directory);
         $renderer->setWriter(new StreamWriter(STDOUT));
@@ -60,5 +53,7 @@ class MessDetectorCommand extends AbstractMoodleCommand
 
         $messDetector = new PHPMD();
         $messDetector->processFiles(implode(',', $files), $rules, [$renderer], $ruleSetFactory);
+
+        return 0;
     }
 }

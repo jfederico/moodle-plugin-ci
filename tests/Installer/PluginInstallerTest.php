@@ -6,8 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI\Tests\Installer;
@@ -16,30 +16,12 @@ use Moodlerooms\MoodlePluginCI\Bridge\MoodlePlugin;
 use Moodlerooms\MoodlePluginCI\Installer\ConfigDumper;
 use Moodlerooms\MoodlePluginCI\Installer\PluginInstaller;
 use Moodlerooms\MoodlePluginCI\Tests\Fake\Bridge\DummyMoodle;
-use Symfony\Component\Filesystem\Filesystem;
+use Moodlerooms\MoodlePluginCI\Tests\FilesystemTestCase;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
-/**
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class PluginInstallerTest extends \PHPUnit_Framework_TestCase
+class PluginInstallerTest extends FilesystemTestCase
 {
-    private $tempDir;
-
-    protected function setUp()
-    {
-        $this->tempDir = sys_get_temp_dir().'/moodle-plugin-ci/PluginInstallerTest'.time();
-        mkdir($this->tempDir, 0777, true);
-    }
-
-    protected function tearDown()
-    {
-        $fs = new Filesystem();
-        $fs->remove($this->tempDir);
-    }
-
     public function testInstall()
     {
         $fixture   = __DIR__.'/../Fixture/moodle-local_travis';
@@ -47,12 +29,12 @@ class PluginInstallerTest extends \PHPUnit_Framework_TestCase
         $installer = new PluginInstaller(new DummyMoodle($this->tempDir), $plugin, '', new ConfigDumper());
         $installer->install();
 
-        $this->assertEquals($installer->stepCount(), $installer->getOutput()->getStepCount());
+        $this->assertSame($installer->stepCount(), $installer->getOutput()->getStepCount());
 
         $installDir = $this->tempDir.'/local/travis';
 
-        $this->assertEquals($installDir, $plugin->directory, 'Plugin directory should be absolute path after install');
-        $this->assertEquals(['PLUGIN_DIR' => $installDir], $installer->getEnv());
+        $this->assertSame($installDir, $plugin->directory, 'Plugin directory should be absolute path after install');
+        $this->assertSame(['PLUGIN_DIR' => $installDir], $installer->getEnv());
     }
 
     public function testInstallPluginIntoMoodle()
@@ -76,13 +58,11 @@ class PluginInstallerTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
     public function testInstallPluginIntoMoodleAlreadyExists()
     {
-        $filesystem = new Filesystem();
-        $filesystem->mkdir($this->tempDir.'/local/travis');
+        $this->expectException(\RuntimeException::class);
+
+        $this->fs->mkdir($this->tempDir.'/local/travis');
 
         $fixture   = realpath(__DIR__.'/../Fixture/moodle-local_travis');
         $plugin    = new MoodlePlugin($fixture);
@@ -106,15 +86,14 @@ class PluginInstallerTest extends \PHPUnit_Framework_TestCase
         $installer->createConfigFile($filename);
 
         $this->assertFileExists($filename);
-        $this->assertEquals($expected, Yaml::parse($filename));
+        $this->assertSame($expected, Yaml::parse(file_get_contents($filename)));
     }
 
     public function testScanForPlugins()
     {
         $fixture = __DIR__.'/../Fixture/moodle-local_travis';
 
-        $fs = new Filesystem();
-        $fs->mirror($fixture, $this->tempDir.'/moodle-local_travis');
+        $this->fs->mirror($fixture, $this->tempDir.'/moodle-local_travis');
 
         $plugin    = new MoodlePlugin($fixture);
         $installer = new PluginInstaller(new DummyMoodle($this->tempDir), $plugin, $this->tempDir, new ConfigDumper());

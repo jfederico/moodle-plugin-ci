@@ -6,17 +6,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Copyright (c) 2017 Blackboard Inc. (http://www.blackboard.com)
+ * License http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace Moodlerooms\MoodlePluginCI;
 
 /**
  * Resolve the location of various coding standards.
- *
- * @copyright Copyright (c) 2015 Moodlerooms Inc. (http://www.moodlerooms.com)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class StandardResolver
 {
@@ -34,8 +31,7 @@ class StandardResolver
     {
         $defaultStandards = [
             'moodle' => [
-                __DIR__.'/../../../moodlerooms/moodle-coding-standard/moodle', // Global Composer install.
-                __DIR__.'/../vendor/moodlerooms/moodle-coding-standard/moodle', // Local Composer install.
+                __DIR__.'/../vendor/moodlehq/moodle-local_codechecker/moodle',
             ],
         ];
 
